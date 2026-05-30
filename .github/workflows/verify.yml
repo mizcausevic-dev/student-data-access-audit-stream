@@ -1,0 +1,30 @@
+name: Verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify every example event
+        run: |
+          for f in examples/*.json; do
+            echo "=== $f"
+            node src/verify.mjs "$f" || exit 1
+          done
+      - name: Stale-hash guard
+        run: |
+          node src/build-examples.mjs
+          git diff --exit-code -- examples/ \
+            || (echo "ERROR: examples/ have stale hashes. Run 'npm run build-examples' locally and commit." && exit 1)

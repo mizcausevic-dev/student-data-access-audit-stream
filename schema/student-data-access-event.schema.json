@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mizcausevic-dev/student-data-access-audit-stream/blob/main/schema/student-data-access-event.schema.json",
+  "title": "Student Data Access Audit Event",
+  "description": "Hash-chained append-only ledger event describing which AI tool read which student record, when, under what FERPA disclosure exception (or COPPA consent basis for under-13), under which buyer-published Decision Card, and under what records-of-disclosure obligation status. Bridges CEDS / Ed-Fi resource semantics to the Kinetic Gain Protocol Suite audit-stream spine.",
+  "type": "object",
+  "required": [
+    "event_id",
+    "timestamp",
+    "kind",
+    "source",
+    "subject_student_ref",
+    "resource",
+    "action",
+    "outcome",
+    "agent",
+    "consent_basis",
+    "decision_card_ref",
+    "prev_hash",
+    "hash"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "event_id":                  {"type": "string", "minLength": 1, "description": "UUID v7 or similar monotonic ID"},
+    "timestamp":                 {"type": "string", "format": "date-time"},
+    "kind": {
+      "type": "string",
+      "enum": [
+        "student.record.read",
+        "student.record.search",
+        "student.record.write",
+        "student.record.export",
+        "student.record.delete",
+        "student.record.deletion-requested"
+      ]
+    },
+    "source":                    {"type": "string", "minLength": 1, "description": "The system that emitted the event (e.g. 'springfield-sis-powerschool', 'vendory-tutorai-3.4')"},
+    "subject_student_ref": {
+      "type": "object",
+      "required": ["scheme", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "scheme": {"type": "string", "enum": ["state-student-id-tokenized", "nces-locale-id", "ceds-person-id", "internal-tokenized"]},
+        "value":  {"type": "string", "minLength": 1, "description": "Tokenized or hashed identifier — RAW state-student-id MUST NOT appear in the event"}
+      }
+    },
+    "resource": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type":           {"type": "string", "enum": ["sis-record", "lms-record", "iep-record", "504-plan-record", "transcript-record", "assessment-record", "attendance-record", "discipline-record", "fhir-equivalent-record", "ceds-element-set", "ed-fi-resource"]},
+        "ceds_element_id":{"type": "string", "description": "CEDS Element ID (e.g. 000234) for fine-grained categorization"},
+        "ed_fi_resource_kind":{"type": "string", "description": "Ed-Fi ODS/API resource kind (e.g. 'StudentGradebookEntry')"},
+        "id_tokenized":   {"type": "string", "minLength": 1, "description": "Tokenized resource ID — raw IDs MUST NOT appear in the event"},
+        "fields_accessed":{"type": "array", "items": {"type": "string"}, "description": "Logical field names accessed (e.g. ['grade-letter', 'comments', 'absence-count'])"}
+      }
+    },
+    "action": {
+      "type": "string",
+      "enum": ["C", "R", "U", "D", "E"],
+      "description": "Action codes: C = Create, R = Read, U = Update, D = Delete, E = Execute"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["0", "4", "8", "12"],
+      "description": "Outcome codes: 0 = success, 4 = minor failure, 8 = serious failure, 12 = major failure"
+    },
+    "agent": {
+      "type": "object",
+      "required": ["ai_tool_card_url", "ai_decision_card_url"],
+      "additionalProperties": false,
+      "properties": {
+        "ai_tool_card_url":     {"type": "string", "format": "uri", "description": "URL to the AI tool's Agent Card or MCP Tool Card"},
+        "ai_decision_card_url": {"type": "string", "format": "uri", "description": "URL to the Decision Card that authorized this access"},
+        "principal":            {"type": "string", "description": "OPTIONAL — actor on whose behalf the AI tool acted (teacher, student, counselor, parent)"}
+      }
+    },
+    "consent_basis": {
+      "type": "object",
+      "required": ["code"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "ferpa-school-official",
+            "ferpa-parent-consent",
+            "ferpa-directory-information",
+            "ferpa-judicial-order-or-subpoena",
+            "ferpa-emergency-exception",
+            "coppa-school-as-agent",
+            "coppa-direct-parental-consent"
+          ]
+        },
+        "citation":         {"type": "string", "description": "Specific CFR citation (e.g. '34 CFR §99.31(a)(1)(i)(B)')"},
+        "consent_record_uri":{"type": "string", "format": "uri", "description": "OPTIONAL — URL to the consent record if applicable"}
+      }
+    },
+    "decision_card_ref":       {"type": "string", "format": "uri", "description": "URL to the Decision Card that authorized this access (mirrors agent.ai_decision_card_url)"},
+    "records_of_disclosure_status": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "logged_in_99_32":  {"type": "boolean", "description": "Whether this access was logged in the LEA's 34 CFR §99.32 records-of-disclosure (school-official-exception accesses are typically NOT logged per §99.32(d)(2))"},
+        "log_entry_uri":    {"type": "string", "format": "uri"},
+        "carveout_reason":  {"type": "string", "description": "OPTIONAL — citation for why this access is not logged (e.g. 'school-official-exception per §99.32(d)(2)')"}
+      }
+    },
+    "purpose_of_use":          {"type": "string", "description": "Free-text purpose statement (e.g. 'personalized tutoring next-problem generation')"},
+    "redaction_applied":       {"type": "array", "items": {"type": "string"}, "description": "Which fields were tokenized / hashed / redacted per the Decision Card's vault contract before reaching the AI tool"},
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source_ip_hashed":      {"type": "string", "description": "Hashed source IP (raw IP MUST NOT appear)"},
+        "tls_version":           {"type": "string"},
+        "user_agent_hashed":     {"type": "string"}
+      }
+    },
+    "signature": {
+      "type": "object",
+      "required": ["algorithm", "signer_key_uri", "signature_b64"],
+      "additionalProperties": false,
+      "properties": {
+        "algorithm":     {"type": "string", "const": "ed25519"},
+        "signer_key_uri":{"type": "string", "format": "uri"},
+        "signature_b64": {"type": "string"}
+      }
+    },
+    "prev_hash":               {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "hash":                    {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

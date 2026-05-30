@@ -1,0 +1,55 @@
+{
+  "event_id": "01938b5a-9d3b-7d9f-ab5c-4f7g6e5c3d2b",
+  "timestamp": "2026-09-22T14:47:18Z",
+  "kind": "student.record.read",
+  "source": "vendorz-earlywarn-2.1",
+  "subject_student_ref": {
+    "scheme": "state-student-id-tokenized",
+    "value": "tok-IL-1700420-A7BX9P3R"
+  },
+  "resource": {
+    "type": "iep-record",
+    "ceds_element_id": "001234",
+    "id_tokenized": "tok-iep-springfield-2026-9482",
+    "fields_accessed": [
+      "accommodation-extended-time",
+      "accommodation-read-aloud",
+      "service-minutes-math"
+    ]
+  },
+  "action": "R",
+  "outcome": "0",
+  "agent": {
+    "ai_tool_card_url": "https://vendorz.example/.well-known/agents/earlywarn-2.1.json",
+    "ai_decision_card_url": "https://springfield.k12.example/.well-known/decisions/SPRINGFIELD-DEC-2026-EARLY-WARN-0021.json",
+    "principal": "iep-coordinator-grade-7"
+  },
+  "consent_basis": {
+    "code": "ferpa-parent-consent",
+    "citation": "34 CFR §99.30",
+    "consent_record_uri": "https://springfield.k12.example/.well-known/consent-records/parent-A7BX9P3R-2026-08-15.json"
+  },
+  "decision_card_ref": "https://springfield.k12.example/.well-known/decisions/SPRINGFIELD-DEC-2026-EARLY-WARN-0021.json",
+  "records_of_disclosure_status": {
+    "logged_in_99_32": true,
+    "log_entry_uri": "https://springfield.k12.example/.well-known/records-of-disclosure/2026-09-22-vendorz-earlywarn.json"
+  },
+  "purpose_of_use": "Pre-IEP-meeting risk-of-non-completion review; supplement to IEP team decision-making (NOT a substitute for IEP team determination)",
+  "redaction_applied": [
+    "student.name.first",
+    "student.name.last",
+    "student.state_id",
+    "iep.evaluation-narrative"
+  ],
+  "network": {
+    "source_ip_hashed": "h2:8c4b2c0d9e1f3a4b",
+    "tls_version": "1.3"
+  },
+  "signature": {
+    "algorithm": "ed25519",
+    "signer_key_uri": "https://vendorz.example/.well-known/keys/student-data-access-signer.json#k-2026q3",
+    "signature_b64": "ILLUSTRATIVE_PLACEHOLDER_SIGNATURE_FOR_SCHEMA_DOCUMENTATION"
+  },
+  "prev_hash": "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+  "hash": "7a06f36d96962315101ea674aa04e7049a862d22ac0e33187e70df55aa19042d"
+}
